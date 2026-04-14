@@ -27,6 +27,8 @@
       --think: #4ca9ff;
       --pair: #8f8dff;
       --share: #ff9bd1;
+
+      --done: #d95b5b;
     }
 
     * {
@@ -171,14 +173,54 @@
       padding: 14px;
       color: #111;
       text-align: center;
-      border: 2px solid rgba(0,0,0,0.08);
+      border: 3px solid rgba(0, 0, 0, 0.08);
       background: rgba(255,255,255,0.78);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+      position: relative;
     }
 
     .stage-card.active {
-      box-shadow: 0 12px 28px rgba(0,0,0,0.14);
-      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(0,0,0,0.16);
+      transform: translateY(-3px) scale(1.01);
+      opacity: 1;
+    }
+
+    .stage-card.completed {
+      opacity: 0.62;
+      border-color: rgba(217, 91, 91, 0.8);
+      background: linear-gradient(135deg, rgba(217,91,91,0.14), rgba(255,255,255,0.86));
+    }
+
+    .stage-card.active.stage-think {
+      border-color: rgba(76, 169, 255, 0.95);
+      background: linear-gradient(135deg, rgba(76,169,255,0.30), rgba(255,255,255,0.94));
+    }
+
+    .stage-card.active.stage-pair {
+      border-color: rgba(143, 141, 255, 0.95);
+      background: linear-gradient(135deg, rgba(143,141,255,0.30), rgba(255,255,255,0.94));
+    }
+
+    .stage-card.active.stage-share {
+      border-color: rgba(255, 155, 209, 0.95);
+      background: linear-gradient(135deg, rgba(255,155,209,0.30), rgba(255,255,255,0.94));
+    }
+
+    .done-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #e15a5a, #b4202f);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 5px 8px;
+      border-radius: 999px;
+      display: none;
+    }
+
+    .stage-card.completed .done-badge {
+      display: inline-block;
     }
 
     .stage-title {
@@ -188,7 +230,7 @@
     }
 
     .stage-time {
-      font-size: 1.8rem;
+      font-size: 1.65rem;
       font-weight: 800;
       line-height: 1;
       margin-bottom: 6px;
@@ -199,10 +241,6 @@
       font-weight: 700;
       line-height: 1.25;
     }
-
-    .stage-think.active { background: linear-gradient(135deg, rgba(76,169,255,0.24), rgba(255,255,255,0.9)); }
-    .stage-pair.active { background: linear-gradient(135deg, rgba(143,141,255,0.24), rgba(255,255,255,0.9)); }
-    .stage-share.active { background: linear-gradient(135deg, rgba(255,155,209,0.24), rgba(255,255,255,0.9)); }
 
     .main-layout {
       display: grid;
@@ -224,7 +262,7 @@
 
     .left-panel {
       display: grid;
-      grid-template-rows: auto auto auto 1fr;
+      grid-template-rows: auto auto auto auto 1fr;
       gap: 12px;
       min-height: 0;
     }
@@ -305,20 +343,62 @@
       background: linear-gradient(90deg, #ffc3e3 0%, #ff9bd1 100%);
     }
 
+    .adjust-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .adjust-card {
+      background: var(--panel);
+      border: 2px solid rgba(0, 0, 0, 0.12);
+      border-radius: 18px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 48px 1fr 48px;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .adjust-label {
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .adjust-time {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .mini-btn {
+      border: none;
+      border-radius: 12px;
+      min-height: 42px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffffff, #eef7f9);
+      box-shadow: 0 8px 18px rgba(41, 137, 175, 0.12);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    .mini-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(41, 137, 175, 0.18);
+      filter: brightness(1.02);
+    }
+
     .controls {
       display: grid;
       gap: 10px;
     }
 
-    .preset-row {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
-    }
-
     .action-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(8, 1fr);
       gap: 8px;
     }
 
@@ -336,7 +416,7 @@
       box-shadow: 0 8px 18px rgba(41, 137, 175, 0.24);
       width: 100%;
       min-height: 48px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
     }
 
     .button:hover {
@@ -411,8 +491,27 @@
       text-align: center;
       padding: 18px;
       border-radius: 18px;
-      border: 2px solid rgba(0, 0, 0, 0.10);
+      border: 3px solid rgba(0, 0, 0, 0.10);
       background: rgba(255,255,255,0.75);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .phase-display.think {
+      border-color: rgba(76, 169, 255, 0.75);
+      background: linear-gradient(135deg, rgba(76,169,255,0.16), rgba(255,255,255,0.88));
+      box-shadow: 0 12px 24px rgba(76, 169, 255, 0.12);
+    }
+
+    .phase-display.pair {
+      border-color: rgba(143, 141, 255, 0.75);
+      background: linear-gradient(135deg, rgba(143,141,255,0.16), rgba(255,255,255,0.88));
+      box-shadow: 0 12px 24px rgba(143, 141, 255, 0.12);
+    }
+
+    .phase-display.share {
+      border-color: rgba(255, 155, 209, 0.75);
+      background: linear-gradient(135deg, rgba(255,155,209,0.16), rgba(255,255,255,0.88));
+      box-shadow: 0 12px 24px rgba(255, 155, 209, 0.12);
     }
 
     .phase-name {
@@ -468,6 +567,12 @@
       100% { transform: translate3d(3%, 2%, 0) scale(1.1); }
     }
 
+    @media (max-width: 1200px) {
+      .action-row {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
     @media (max-width: 1100px) {
       body {
         overflow: auto;
@@ -494,12 +599,9 @@
     }
 
     @media (max-width: 800px) {
-      .stage-row {
+      .stage-row,
+      .adjust-row {
         grid-template-columns: 1fr;
-      }
-
-      .preset-row {
-        grid-template-columns: repeat(3, 1fr);
       }
 
       .action-row {
@@ -527,20 +629,23 @@
 
       <div class="stage-row">
         <div class="stage-card stage-think active" id="thinkCard">
+          <div class="done-badge">Done</div>
           <div class="stage-title">Think</div>
-          <div class="stage-time" id="thinkTimeLabel">30s</div>
+          <div class="stage-time" id="thinkTimeLabel">00:30</div>
           <div class="stage-desc">Silent thinking time. Form your own answer first.</div>
         </div>
 
         <div class="stage-card stage-pair" id="pairCard">
+          <div class="done-badge">Done</div>
           <div class="stage-title">Pair</div>
-          <div class="stage-time" id="pairTimeLabel">60s</div>
+          <div class="stage-time" id="pairTimeLabel">01:00</div>
           <div class="stage-desc">Discuss your ideas with a partner. Compare and improve.</div>
         </div>
 
         <div class="stage-card stage-share" id="shareCard">
+          <div class="done-badge">Done</div>
           <div class="stage-title">Share</div>
-          <div class="stage-time" id="shareTimeLabel">45s</div>
+          <div class="stage-time" id="shareTimeLabel">00:45</div>
           <div class="stage-desc">Be ready to explain clearly to the class or group.</div>
         </div>
       </div>
@@ -561,18 +666,41 @@
             </div>
           </div>
 
-          <div class="controls">
-            <div class="preset-row">
-              <button class="button secondary" data-preset="quick" type="button">Quick</button>
-              <button class="button secondary" data-preset="standard" type="button">Standard</button>
-              <button class="button secondary" data-preset="extended" type="button">Extended</button>
-              <button class="button stage-think-btn" id="setThinkButton" type="button">Think +</button>
-              <button class="button stage-pair-btn" id="setPairButton" type="button">Pair +</button>
-              <button class="button stage-share-btn" id="setShareButton" type="button">Share +</button>
+          <div class="adjust-row">
+            <div class="adjust-card">
+              <button class="mini-btn" id="thinkMinusButton" type="button">−</button>
+              <div>
+                <div class="adjust-label">Think</div>
+                <div class="adjust-time" id="thinkAdjustLabel">00:30</div>
+              </div>
+              <button class="mini-btn" id="thinkPlusButton" type="button">+</button>
             </div>
 
+            <div class="adjust-card">
+              <button class="mini-btn" id="pairMinusButton" type="button">−</button>
+              <div>
+                <div class="adjust-label">Pair</div>
+                <div class="adjust-time" id="pairAdjustLabel">01:00</div>
+              </div>
+              <button class="mini-btn" id="pairPlusButton" type="button">+</button>
+            </div>
+
+            <div class="adjust-card">
+              <button class="mini-btn" id="shareMinusButton" type="button">−</button>
+              <div>
+                <div class="adjust-label">Share</div>
+                <div class="adjust-time" id="shareAdjustLabel">00:45</div>
+              </div>
+              <button class="mini-btn" id="sharePlusButton" type="button">+</button>
+            </div>
+          </div>
+
+          <div class="controls">
             <div class="action-row">
               <button class="button" id="startSequenceButton" type="button">Start TPS</button>
+              <button class="button stage-think-btn" id="jumpThinkButton" type="button">Think</button>
+              <button class="button stage-pair-btn" id="jumpPairButton" type="button">Pair</button>
+              <button class="button stage-share-btn" id="jumpShareButton" type="button">Share</button>
               <button class="button secondary" id="pauseButton" type="button">Pause</button>
               <button class="button secondary" id="skipButton" type="button">Skip Stage</button>
               <button class="button secondary" id="resetButton" type="button">Reset</button>
@@ -582,7 +710,7 @@
         </section>
 
         <aside class="panel right-panel">
-          <div class="phase-display">
+          <div class="phase-display think" id="phaseDisplay">
             <div class="phase-name" id="phaseName">Think</div>
             <div class="phase-instruction" id="phaseInstruction">
               Read the prompt. Think independently. Build your own answer before discussing it.
@@ -616,12 +744,6 @@
   </div>
 
   <script>
-    const PRESETS = {
-      quick: { think: 20, pair: 40, share: 30 },
-      standard: { think: 30, pair: 60, share: 45 },
-      extended: { think: 45, pair: 90, share: 60 }
-    };
-
     const STAGES = [
       {
         key: "think",
@@ -644,9 +766,9 @@
     ];
 
     const state = {
-      durations: { ...PRESETS.standard },
+      durations: { think: 30, pair: 60, share: 45 },
       stageIndex: 0,
-      remaining: PRESETS.standard.think,
+      remaining: 30,
       interval: null,
       running: false,
       audioContext: null,
@@ -657,10 +779,15 @@
     const pairTimeLabel = document.getElementById("pairTimeLabel");
     const shareTimeLabel = document.getElementById("shareTimeLabel");
 
+    const thinkAdjustLabel = document.getElementById("thinkAdjustLabel");
+    const pairAdjustLabel = document.getElementById("pairAdjustLabel");
+    const shareAdjustLabel = document.getElementById("shareAdjustLabel");
+
     const digitalTimer = document.getElementById("digitalTimer");
     const stagePromptText = document.getElementById("stagePromptText");
     const countdownBarFill = document.getElementById("countdownBarFill");
 
+    const phaseDisplay = document.getElementById("phaseDisplay");
     const phaseName = document.getElementById("phaseName");
     const phaseInstruction = document.getElementById("phaseInstruction");
 
@@ -670,9 +797,16 @@
     const resetButton = document.getElementById("resetButton");
     const stopSoundButton = document.getElementById("stopSoundButton");
 
-    const setThinkButton = document.getElementById("setThinkButton");
-    const setPairButton = document.getElementById("setPairButton");
-    const setShareButton = document.getElementById("setShareButton");
+    const jumpThinkButton = document.getElementById("jumpThinkButton");
+    const jumpPairButton = document.getElementById("jumpPairButton");
+    const jumpShareButton = document.getElementById("jumpShareButton");
+
+    const thinkMinusButton = document.getElementById("thinkMinusButton");
+    const thinkPlusButton = document.getElementById("thinkPlusButton");
+    const pairMinusButton = document.getElementById("pairMinusButton");
+    const pairPlusButton = document.getElementById("pairPlusButton");
+    const shareMinusButton = document.getElementById("shareMinusButton");
+    const sharePlusButton = document.getElementById("sharePlusButton");
 
     function formatSeconds(seconds) {
       const mins = Math.floor(seconds / 60);
@@ -681,15 +815,25 @@
     }
 
     function updateStageLabels() {
-      thinkTimeLabel.textContent = `${state.durations.think}s`;
-      pairTimeLabel.textContent = `${state.durations.pair}s`;
-      shareTimeLabel.textContent = `${state.durations.share}s`;
+      thinkTimeLabel.textContent = formatSeconds(state.durations.think);
+      pairTimeLabel.textContent = formatSeconds(state.durations.pair);
+      shareTimeLabel.textContent = formatSeconds(state.durations.share);
+
+      thinkAdjustLabel.textContent = formatSeconds(state.durations.think);
+      pairAdjustLabel.textContent = formatSeconds(state.durations.pair);
+      shareAdjustLabel.textContent = formatSeconds(state.durations.share);
     }
 
     function updateStageCards() {
       STAGES.forEach((stage, index) => {
         const card = document.getElementById(stage.cardId);
-        card.classList.toggle("active", index === state.stageIndex);
+        card.classList.remove("active", "completed");
+
+        if (index < state.stageIndex) {
+          card.classList.add("completed");
+        } else if (index === state.stageIndex) {
+          card.classList.add("active", `stage-${stage.key}`);
+        }
       });
     }
 
@@ -700,6 +844,9 @@
       phaseName.textContent = stage.label;
       phaseInstruction.textContent = stage.instruction;
 
+      phaseDisplay.classList.remove("think", "pair", "share");
+      phaseDisplay.classList.add(stage.key);
+
       const total = state.durations[stage.key];
       const ratio = total > 0 ? Math.max(0, Math.min(1, state.remaining / total)) : 0;
       countdownBarFill.style.width = `${ratio * 100}%`;
@@ -707,15 +854,6 @@
       countdownBarFill.classList.add(stage.key);
 
       updateStageCards();
-    }
-
-    function setPreset(name) {
-      state.durations = { ...PRESETS[name] };
-      state.stageIndex = 0;
-      state.remaining = state.durations.think;
-      stopSequence();
-      updateStageLabels();
-      updateMainDisplay();
     }
 
     function stopSequence() {
@@ -774,6 +912,15 @@
       }
     }
 
+    function setStage(index) {
+      stopSequence();
+      stopAlarm();
+      state.stageIndex = index;
+      const stage = STAGES[state.stageIndex];
+      state.remaining = state.durations[stage.key];
+      updateMainDisplay();
+    }
+
     function nextStage() {
       stopAlarm();
 
@@ -791,6 +938,12 @@
         stagePromptText.textContent = "Finished";
         phaseName.textContent = "Finished";
         phaseInstruction.textContent = "Think–Pair–Share complete. Bring the class back together.";
+        updateStageCards();
+        STAGES.forEach((stage, index) => {
+          if (index <= state.stageIndex) {
+            document.getElementById(stage.cardId).classList.add("completed");
+          }
+        });
         playFinalAlarm();
       }
     }
@@ -832,21 +985,18 @@
       }
     }
 
-    function bumpStage(stageKey) {
-      state.durations[stageKey] += 15;
+    function adjustStage(stageKey, delta) {
+      const nextValue = Math.max(15, state.durations[stageKey] + delta);
+      state.durations[stageKey] = nextValue;
+
       const currentStage = STAGES[state.stageIndex];
       if (currentStage.key === stageKey && !state.running) {
-        state.remaining = state.durations[stageKey];
+        state.remaining = nextValue;
       }
+
       updateStageLabels();
       updateMainDisplay();
     }
-
-    document.querySelectorAll("[data-preset]").forEach(button => {
-      button.addEventListener("click", () => {
-        setPreset(button.dataset.preset);
-      });
-    });
 
     startSequenceButton.addEventListener("click", startSequence);
     pauseButton.addEventListener("click", pauseSequence);
@@ -854,9 +1004,16 @@
     skipButton.addEventListener("click", skipStage);
     stopSoundButton.addEventListener("click", stopAlarm);
 
-    setThinkButton.addEventListener("click", () => bumpStage("think"));
-    setPairButton.addEventListener("click", () => bumpStage("pair"));
-    setShareButton.addEventListener("click", () => bumpStage("share"));
+    jumpThinkButton.addEventListener("click", () => setStage(0));
+    jumpPairButton.addEventListener("click", () => setStage(1));
+    jumpShareButton.addEventListener("click", () => setStage(2));
+
+    thinkMinusButton.addEventListener("click", () => adjustStage("think", -15));
+    thinkPlusButton.addEventListener("click", () => adjustStage("think", 15));
+    pairMinusButton.addEventListener("click", () => adjustStage("pair", -15));
+    pairPlusButton.addEventListener("click", () => adjustStage("pair", 15));
+    shareMinusButton.addEventListener("click", () => adjustStage("share", -15));
+    sharePlusButton.addEventListener("click", () => adjustStage("share", 15));
 
     updateStageLabels();
     updateMainDisplay();
