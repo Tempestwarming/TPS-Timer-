@@ -1,139 +1,199 @@
-      oscillator.type = type;
-      oscillator.frequency.setValueAtTime(frequency, state.audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.0001, state.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(volume, state.audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, state.audioContext.currentTime + duration);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Think Pair Share Timer</title>
+  <style>
+    :root {
+      --panel: #f8f7f1;
+      --text: #111111;
+      --muted: #3d4b4a;
+      --border-dark: rgba(0, 0, 0, 0.14);
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+      --radius: 20px;
 
-      oscillator.connect(gainNode);
-      gainNode.connect(state.audioContext.destination);
+      --bg1: #d8f3f1;
+      --bg2: #e7f7ff;
+      --bg3: #eadfff;
+      --bg4: #ffe3f1;
 
-      oscillator.start();
-      oscillator.stop(state.audioContext.currentTime + duration + 0.02);
+      --cyan1: #36c7d8;
+      --cyan2: #56e0d0;
+      --blue: #4ca9ff;
+      --violet: #8f8dff;
+      --pink: #ff9bd1;
+
+      --think: #4ca9ff;
+      --pair: #8f8dff;
+      --share: #ff9bd1;
+      --done: #d95b5b;
+      --stage-primary: #0096ff;
+      --stage-secondary: #70ecff;
+      --stage-deep: #005edb;
+      --stage-glow: rgba(0, 150, 255, 0.58);
+      --stage-soft: rgba(0, 150, 255, 0.30);
     }
 
-    function playStageChangeSound() {
-      playTone(740, 0.14, 0.11, "triangle");
-      setTimeout(() => playTone(880, 0.16, 0.14, "triangle"), 180);
+    * {
+      box-sizing: border-box;
     }
 
-    function playFinalAlarm() {
-      stopAlarm();
-      playTone(880, 0.24, 0.18, "sine");
-      state.alarmInterval = setInterval(() => {
-        playTone(880, 0.24, 0.18, "sine");
-      }, 850);
+    html,
+    body {
+      width: 100%;
+      height: 100%;
     }
 
-    function stopAlarm() {
-      if (state.alarmInterval) {
-        clearInterval(state.alarmInterval);
-        state.alarmInterval = null;
-      }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: Arial, Verdana, "Trebuchet MS", sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      position: relative;
+      background:
+        radial-gradient(circle at top left, rgba(91, 211, 219, 0.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(39, 142, 214, 0.14), transparent 35%),
+        linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 38%, var(--bg3) 68%, var(--bg4) 100%);
     }
 
-    function setStage(index) {
-      stopSequence();
-      stopAlarm();
-      state.stageIndex = index;
-      const stage = STAGES[state.stageIndex];
-      state.remaining = state.durations[stage.key];
-      updateMainDisplay();
+    body.stage-think {
+      --stage-primary: #0096ff;
+      --stage-secondary: #70ecff;
+      --stage-deep: #005edb;
+      --stage-glow: rgba(0, 150, 255, 0.58);
+      --stage-soft: rgba(0, 150, 255, 0.30);
     }
 
-    function nextStage() {
-      stopAlarm();
-
-      if (state.stageIndex < STAGES.length - 1) {
-        state.stageIndex += 1;
-        const stage = STAGES[state.stageIndex];
-        state.remaining = state.durations[stage.key];
-        playStageChangeSound();
-        updateMainDisplay();
-      } else {
-        stopSequence();
-        state.stageIndex = STAGES.length - 1;
-        state.remaining = 0;
-        updateMainDisplay();
-        stagePromptText.textContent = "Finished";
-        phaseName.textContent = "Finished";
-        phaseInstruction.textContent = "Think-Pair-Share complete. Bring the class back together.";
-        STAGES.forEach((stage, index) => {
-          if (index <= state.stageIndex) {
-            document.getElementById(stage.cardId).classList.add("completed");
-          }
-        });
-        playFinalAlarm();
-      }
+    body.stage-pair {
+      --stage-primary: #7f35ff;
+      --stage-secondary: #d8c7ff;
+      --stage-deep: #4d16d8;
+      --stage-glow: rgba(127, 53, 255, 0.60);
+      --stage-soft: rgba(127, 53, 255, 0.31);
     }
 
-    function startSequence() {
-      if (state.running) return;
-      stopAlarm();
-      state.running = true;
-
-      state.interval = setInterval(() => {
-        if (state.remaining > 0) {
-          state.remaining -= 1;
-          updateMainDisplay();
-        }
-
-        if (state.remaining <= 0) {
-          nextStage();
-        }
-      }, 1000);
+    body.stage-share {
+      --stage-primary: #ff168f;
+      --stage-secondary: #ffd1ed;
+      --stage-deep: #c40067;
+      --stage-glow: rgba(255, 22, 143, 0.60);
+      --stage-soft: rgba(255, 22, 143, 0.32);
     }
 
-    function pauseSequence() {
-      stopSequence();
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -18%;
+      pointer-events: none;
+      z-index: 0;
+      mix-blend-mode: screen;
     }
 
-    function resetSequence() {
-      stopSequence();
-      stopAlarm();
-      state.stageIndex = 0;
-      state.remaining = state.durations.think;
-      updateMainDisplay();
+    body::before {
+      background:
+        radial-gradient(circle at 16% 24%, rgba(88, 224, 215, 0.44) 0%, rgba(88, 224, 215, 0.18) 12%, transparent 28%),
+        radial-gradient(circle at 76% 26%, rgba(84, 196, 255, 0.38) 0%, rgba(84, 196, 255, 0.14) 14%, transparent 30%),
+        radial-gradient(circle at 48% 76%, rgba(183, 143, 255, 0.34) 0%, rgba(183, 143, 255, 0.12) 14%, transparent 30%),
+        radial-gradient(circle at 82% 72%, rgba(255, 148, 207, 0.28) 0%, rgba(255, 148, 207, 0.10) 12%, transparent 26%);
+      animation: rippleDriftOne 9s ease-in-out infinite alternate;
+      filter: blur(26px);
+      opacity: 0.9;
     }
 
-    function skipStage() {
-      stopSequence();
-      nextStage();
-      if (phaseName.textContent !== "Finished") {
-        startSequence();
-      }
+    body::after {
+      background:
+        radial-gradient(circle at 24% 72%, rgba(92, 231, 215, 0.28) 0%, rgba(92, 231, 215, 0.10) 12%, transparent 26%),
+        radial-gradient(circle at 68% 16%, rgba(170, 139, 255, 0.26) 0%, rgba(170, 139, 255, 0.10) 12%, transparent 26%),
+        radial-gradient(circle at 58% 58%, rgba(255, 171, 220, 0.24) 0%, rgba(255, 171, 220, 0.08) 12%, transparent 24%),
+        radial-gradient(circle at 90% 44%, rgba(82, 180, 255, 0.24) 0%, rgba(82, 180, 255, 0.08) 12%, transparent 24%);
+      animation: rippleDriftTwo 11s ease-in-out infinite alternate;
+      filter: blur(42px);
+      opacity: 0.8;
     }
 
-    function adjustStage(stageKey, delta) {
-      const nextValue = Math.max(15, state.durations[stageKey] + delta);
-      state.durations[stageKey] = nextValue;
-      const currentStage = STAGES[state.stageIndex];
-      if (currentStage.key === stageKey && !state.running) {
-        state.remaining = nextValue;
-      }
-      updateStageLabels();
-      updateMainDisplay();
+    .viewport-fit {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      position: relative;
+      z-index: 1;
     }
 
-    startSequenceButton.addEventListener("click", startSequence);
-    pauseButton.addEventListener("click", pauseSequence);
-    resetButton.addEventListener("click", resetSequence);
-    skipButton.addEventListener("click", skipStage);
-    stopSoundButton.addEventListener("click", stopAlarm);
+    .scale-stage {
+      width: 1500px;
+      height: 900px;
+      transform: scale(var(--fit-scale, 1));
+      transform-origin: center;
+    }
 
-    jumpThinkButton.addEventListener("click", () => setStage(0));
-    jumpPairButton.addEventListener("click", () => setStage(1));
-    jumpShareButton.addEventListener("click", () => setStage(2));
+    .app-shell {
+      width: 100%;
+      height: 100%;
+      border-radius: 30px;
+      padding: 9px;
+      background: linear-gradient(
+        120deg,
+        var(--stage-deep),
+        var(--stage-primary),
+        var(--stage-secondary),
+        #ffffff,
+        var(--stage-secondary),
+        var(--stage-primary),
+        var(--stage-deep)
+      );
+      background-size: 400% 400%;
+      animation: shimmerFlow 7s linear infinite;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.7), 0 26px 76px var(--stage-glow);
+      position: relative;
+      overflow: hidden;
+      transition: background 0.22s ease, box-shadow 0.22s ease;
+    }
 
-    thinkMinusButton.addEventListener("click", () => adjustStage("think", -15));
-    thinkPlusButton.addEventListener("click", () => adjustStage("think", 15));
-    pairMinusButton.addEventListener("click", () => adjustStage("pair", -15));
-    pairPlusButton.addEventListener("click", () => adjustStage("pair", 15));
-    shareMinusButton.addEventListener("click", () => adjustStage("share", -15));
-    sharePlusButton.addEventListener("click", () => adjustStage("share", 15));
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        110deg,
+        transparent 18%,
+        rgba(255, 255, 255, 0.40) 34%,
+        transparent 50%
+      );
+      transform: translateX(-120%);
+      animation: shimmerSweep 4.2s ease-in-out infinite;
+      pointer-events: none;
+    }
 
-    fitTimerToViewport();
-    updateStageLabels();
-    updateMainDisplay();
-  </script>
-</body>
-</html>
+    .app-frame {
+      position: relative;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(6px);
+      border: 5px solid var(--stage-primary);
+      border-radius: 26px;
+      padding: 12px;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 10px;
+      overflow: hidden;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .title-bar {
+      background: rgba(255, 255, 255, 0.76);
+      border: 3px solid var(--stage-primary);
+      border-radius: 18px;
+      padding: 12px 18px;
+      text-align: center;
+      font-size: 1.65rem;
+      font-weight: 800;
+      box-shadow: 0 8px 18px var(--stage-glow);
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    }
