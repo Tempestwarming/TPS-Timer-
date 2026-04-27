@@ -3,186 +3,322 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Classroom TPS Timer</title>
+  <title>Professional TPS Timer</title>
   <style>
-    /* Focus on High-Contrast and Scalability */
     :root {
-      --bg: #ffffff;
-      --text: #1a1a1a;
-      --accent: #4ca9ff;
-      --card-bg: #f0f4f8;
+      --panel: #f8f7f1;
+      --text: #111111;
+      --muted: #2a3534; /* Darkened for classroom visibility */
+      --border-dark: rgba(0, 0, 0, 0.14);
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+      --radius: 24px;
+      --bg1: #d8f3f1; --bg2: #e7f7ff; --bg3: #eadfff; --bg4: #ffe3f1;
+      --cyan1: #36c7d8; --blue: #4ca9ff; --violet: #8f8dff; --pink: #ff9bd1;
     }
 
-    body, html {
-      margin: 0; padding: 0;
-      height: 100%; width: 100%;
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
+    body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #eef2f3;
-      overflow: hidden; /* Prevents accidental scrolling on boards */
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 38%, var(--bg3) 68%, var(--bg4) 100%);
     }
 
-    .container {
+    /* Animated background border */
+    .app-shell {
+      width: 100%;
+      max-width: 1600px;
+      height: 98vh;
+      border-radius: 30px;
+      padding: 6px;
+      background: linear-gradient(120deg, var(--cyan1), var(--blue), var(--violet), var(--pink), var(--cyan1));
+      background-size: 400% 400%;
+      animation: shimmerFlow 10s linear infinite;
+      box-shadow: var(--shadow);
+    }
+
+    .app-frame {
+      background: rgba(255, 255, 255, 0.93);
+      backdrop-filter: blur(8px);
+      border-radius: 26px;
+      padding: 20px;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
+      gap: 15px;
     }
 
-    /* Top Section: Progress Cards */
-    .header {
+    /* Header Section */
+    .title-bar {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      padding: 10px;
+      background: white;
+      border-radius: 15px;
+      border: 1px solid var(--border-dark);
+    }
+
+    .stage-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
-      margin-bottom: 20px;
     }
 
     .stage-card {
-      background: var(--card-bg);
+      background: white;
       padding: 15px;
-      border-radius: 12px;
+      border-radius: 20px;
       text-align: center;
-      border: 4px solid transparent;
-      transition: 0.3s;
+      border: 3px solid transparent;
+      transition: all 0.3s ease;
+      position: relative;
+      opacity: 0.7;
     }
 
     .stage-card.active {
-      border-color: var(--accent);
-      background: #fff;
+      opacity: 1;
+      transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      transform: scale(1.05);
     }
 
-    .stage-label { font-weight: bold; font-size: 1.2rem; text-transform: uppercase; }
+    .stage-card.active.stage-think { border-color: var(--blue); background: #f0f8ff; }
+    .stage-card.active.stage-pair { border-color: var(--violet); background: #f5f3ff; }
+    .stage-card.active.stage-share { border-color: var(--pink); background: #fff5fa; }
 
-    /* Middle Section: THE BIG TIMER */
-    .timer-area {
+    .stage-card.completed { opacity: 0.5; border-color: #ccc; }
+    .done-badge {
+      position: absolute; top: 5px; right: 10px;
+      background: #28a745; color: white;
+      font-size: 0.7rem; padding: 3px 8px; border-radius: 10px;
+      display: none;
+    }
+    .stage-card.completed .done-badge { display: block; }
+
+    /* Main Content Split */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 15px;
+      flex-grow: 1;
+      min-height: 0;
+    }
+
+    .panel {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow-y: auto;
+    }
+
+    /* Timer Area Scaling */
+    .timer-display-box {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: white;
-      border-radius: 20px;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+      text-align: center;
     }
 
-    #stagePrompt {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-
-    #digitalTimer {
-      font-size: clamp(8rem, 25vh, 15rem); /* Massive font for classroom visibility */
+    .digital-timer {
+      font-size: clamp(5rem, 15vh, 10rem);
       font-weight: 900;
-      font-variant-numeric: tabular-nums;
       line-height: 1;
+      font-family: monospace;
     }
 
-    /* Bottom Section: Controls */
-    .controls {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
+    /* Adjustment Controls */
+    .adjust-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      flex-wrap: wrap;
     }
 
-    button {
-      padding: 15px 25px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #444;
-      color: white;
-      transition: background 0.2s;
+    .adjust-card {
+      background: #fdfdfd;
+      border: 1px solid #ddd;
+      border-radius: 15px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    button#startBtn { background: #28a745; width: 150px; }
-    button:hover { filter: brightness(1.2); }
-    .btn-secondary { background: #6c757d; }
+    .mini-btn {
+      width: 35px; height: 35px; border-radius: 50%; border: none;
+      background: #eee; font-weight: bold; cursor: pointer;
+    }
 
+    /* Bottom Action Row */
+    .action-row {
+      display: grid;
+      grid-template-columns: 2fr repeat(6, 1fr) 1.5fr;
+      gap: 8px;
+    }
+
+    button.main-action {
+      background: #28a745; color: white; font-weight: bold;
+      border: none; border-radius: 12px; cursor: pointer; padding: 15px;
+    }
+
+    button.secondary { background: #6c757d; color: white; border: none; border-radius: 12px; cursor: pointer; }
+    button.mute-btn { background: #dc3545; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+
+    @keyframes shimmerFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @media (max-width: 1000px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .right-panel { display: none; }
+      .action-row { grid-template-columns: repeat(4, 1fr); }
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
-    <div class="stage-card" id="card-0">
-      <div class="stage-label">Think</div>
-      <div id="time-0">30s</div>
-    </div>
-    <div class="stage-card" id="card-1">
-      <div class="stage-label">Pair</div>
-      <div id="time-1">60s</div>
-    </div>
-    <div class="stage-card" id="card-2">
-      <div class="stage-label">Share</div>
-      <div id="time-2">45s</div>
-    </div>
-  </div>
+<div class="app-shell">
+  <div class="app-frame">
+    <div class="title-bar">Think – Pair – Share</div>
 
-  <div class="timer-area">
-    <div id="stagePrompt">Ready to Start</div>
-    <div id="digitalTimer">00:00</div>
-  </div>
+    <div class="stage-row">
+      <div class="stage-card" id="thinkCard">
+        <div class="done-badge">✓ Done</div>
+        <strong>THINK</strong>
+        <div id="thinkTimeLabel">00:30</div>
+      </div>
+      <div class="stage-card" id="pairCard">
+        <div class="done-badge">✓ Done</div>
+        <strong>PAIR</strong>
+        <div id="pairTimeLabel">01:00</div>
+      </div>
+      <div class="stage-card" id="shareCard">
+        <div class="done-badge">✓ Done</div>
+        <strong>SHARE</strong>
+        <div id="shareTimeLabel">00:45</div>
+      </div>
+    </div>
 
-  <div class="controls">
-    <button onclick="setPreset('quick')" class="btn-secondary">Quick</button>
-    <button onclick="setPreset('standard')" class="btn-secondary">Standard</button>
-    <button onclick="setPreset('extended')" class="btn-secondary">Extended</button>
-    <button id="startBtn" onclick="toggleTimer()">START</button>
-    <button onclick="resetTimer()" class="btn-secondary">RESET</button>
+    <main class="main-layout">
+      <section class="panel left-panel">
+        <div class="timer-display-box">
+          <div id="stagePromptText" style="font-weight: 800; color: var(--blue);">READY</div>
+          <div class="digital-timer" id="digitalTimer">00:00</div>
+          <div style="width: 100%; background: #eee; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 20px;">
+            <div id="progressBar" style="width: 100%; height: 100%; background: var(--blue); transition: width 1s linear;"></div>
+          </div>
+        </div>
+
+        <div class="adjust-row">
+          <div class="adjust-card">
+            <button class="mini-btn" onclick="adjust('think', -15)">-</button>
+            <span id="adj-think">30s</span>
+            <button class="mini-btn" onclick="adjust('think', 15)">+</button>
+          </div>
+          <div class="adjust-card">
+            <button class="mini-btn" onclick="adjust('pair', -15)">-</button>
+            <span id="adj-pair">60s</span>
+            <button class="mini-btn" onclick="adjust('pair', 15)">+</button>
+          </div>
+          <div class="adjust-card">
+            <button class="mini-btn" onclick="adjust('share', -15)">-</button>
+            <span id="adj-share">45s</span>
+            <button class="mini-btn" onclick="adjust('share', 15)">+</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel right-panel">
+        <h3 id="phaseName">Instructions</h3>
+        <p id="phaseInstruction">Select your times and press Start.</p>
+        <div style="font-size: 0.9rem; color: var(--muted); border-top: 1px solid #eee; pt: 10px;">
+          <p><strong>Think:</strong> Silent reflection.</p>
+          <p><strong>Pair:</strong> Peer discussion.</p>
+          <p><strong>Share:</strong> Class feedback.</p>
+        </div>
+      </aside>
+    </main>
+
+    <div class="action-row">
+      <button class="main-action" id="startBtn" onclick="toggleTimer()">START SEQUENCE</button>
+      <button class="secondary" onclick="setStage(0)">Think</button>
+      <button class="secondary" onclick="setStage(1)">Pair</button>
+      <button class="secondary" onclick="setStage(2)">Share</button>
+      <button class="secondary" onclick="reset()">Reset</button>
+      <button class="secondary" onclick="skip()">Skip</button>
+      <button class="mute-btn" onclick="stopAlarm()">MUTE ALARM</button>
+    </div>
   </div>
 </div>
 
 <script>
-  const CONFIG = {
-    quick: [20, 40, 30],
-    standard: [30, 60, 45],
-    extended: [45, 90, 60]
+  const STAGES = [
+    { key: 'think', label: 'Think', instruction: 'Silent thinking time. Form your own answer first.', card: 'thinkCard' },
+    { key: 'pair', label: 'Pair', instruction: 'Discuss with a partner. Compare and improve.', card: 'pairCard' },
+    { key: 'share', label: 'Share', instruction: 'Be ready to explain clearly to the class.', card: 'shareCard' }
+  ];
+
+  let state = {
+    durations: { think: 30, pair: 60, share: 45 },
+    stageIdx: 0,
+    remaining: 30,
+    running: false,
+    interval: null,
+    audioCtx: null,
+    alarmInterval: null
   };
-  
-  const LABELS = ["Think", "Pair", "Share"];
-  let currentDurations = [...CONFIG.standard];
-  let stageIdx = 0;
-  let timeLeft = currentDurations[0];
-  let timerId = null;
-  let audioCtx = null;
 
-  function updateUI() {
-    const mins = Math.floor(timeLeft / 60);
-    const secs = timeLeft % 60;
-    document.getElementById('digitalTimer').textContent = 
-      `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    
-    document.querySelectorAll('.stage-card').forEach((c, i) => {
-      c.classList.toggle('active', i === stageIdx);
-      document.getElementById(`time-${i}`).textContent = currentDurations[i] + 's';
-    });
-
-    document.getElementById('stagePrompt').textContent = timerId ? LABELS[stageIdx] : "Paused/Ready";
+  function format(s) {
+    const m = Math.floor(s / 60);
+    const rs = s % 60;
+    return `${String(m).padStart(2, '0')}:${String(rs).padStart(2, '0')}`;
   }
 
-  function setPreset(p) {
-    stopTimer();
-    currentDurations = [...CONFIG[p]];
-    resetTimer();
+  function updateUI() {
+    const stage = STAGES[state.stageIdx];
+    document.getElementById('digitalTimer').textContent = format(state.remaining);
+    document.getElementById('stagePromptText').textContent = stage.label.toUpperCase();
+    document.getElementById('phaseName').textContent = stage.label;
+    document.getElementById('phaseInstruction').textContent = stage.instruction;
+
+    // Cards & Labels
+    STAGES.forEach((s, i) => {
+      const card = document.getElementById(s.card);
+      card.classList.toggle('active', i === state.stageIdx);
+      card.classList.toggle('completed', i < state.stageIdx);
+      document.getElementById(`${s.key}TimeLabel`).textContent = format(state.durations[s.key]);
+      document.getElementById(`adj-${s.key}`).textContent = state.durations[s.key] + 's';
+    });
+
+    // Progress Bar
+    const total = state.durations[stage.key];
+    document.getElementById('progressBar').style.width = (state.remaining / total * 100) + '%';
   }
 
   function toggleTimer() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (timerId) {
-      stopTimer();
+    if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (state.running) {
+      clearInterval(state.interval);
+      state.running = false;
+      document.getElementById('startBtn').textContent = "RESUME";
     } else {
+      state.running = true;
       document.getElementById('startBtn').textContent = "PAUSE";
-      timerId = setInterval(() => {
-        if (timeLeft > 0) {
-          timeLeft--;
+      state.interval = setInterval(() => {
+        if (state.remaining > 0) {
+          state.remaining--;
           updateUI();
         } else {
           nextStage();
@@ -191,45 +327,75 @@
     }
   }
 
-  function stopTimer() {
-    clearInterval(timerId);
-    timerId = null;
-    document.getElementById('startBtn').textContent = "START";
-    updateUI();
-  }
-
   function nextStage() {
-    if (stageIdx < 2) {
-      stageIdx++;
-      timeLeft = currentDurations[stageIdx];
-      beep(600, 0.5);
+    stopAlarm();
+    if (state.stageIdx < 2) {
+      state.stageIdx++;
+      state.remaining = state.durations[STAGES[state.stageIdx].key];
+      playTone(600, 0.4);
       updateUI();
     } else {
-      stopTimer();
-      beep(800, 1.5);
-      document.getElementById('stagePrompt').textContent = "Finished!";
+      finish();
     }
   }
 
-  function resetTimer() {
-    stopTimer();
-    stageIdx = 0;
-    timeLeft = currentDurations[0];
+  function finish() {
+    clearInterval(state.interval);
+    state.running = false;
+    document.getElementById('stagePromptText').textContent = "FINISHED";
+    document.getElementById('startBtn').textContent = "START SEQUENCE";
+    playAlarm();
+  }
+
+  function reset() {
+    clearInterval(state.interval);
+    stopAlarm();
+    state.running = false;
+    state.stageIdx = 0;
+    state.remaining = state.durations.think;
+    document.getElementById('startBtn').textContent = "START SEQUENCE";
     updateUI();
   }
 
-  function beep(freq, dur) {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
+  function skip() {
+    if (state.stageIdx < 2) nextStage(); else reset();
+  }
+
+  function setStage(i) {
+    state.stageIdx = i;
+    state.remaining = state.durations[STAGES[i].key];
+    updateUI();
+  }
+
+  function adjust(key, amt) {
+    state.durations[key] = Math.max(15, state.durations[key] + amt);
+    if (!state.running && STAGES[state.stageIdx].key === key) {
+      state.remaining = state.durations[key];
+    }
+    updateUI();
+  }
+
+  function playTone(freq, dur) {
+    if (!state.audioCtx) return;
+    const osc = state.audioCtx.createOscillator();
+    const g = state.audioCtx.createGain();
+    osc.connect(g); g.connect(state.audioCtx.destination);
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-    osc.start(); osc.stop(audioCtx.currentTime + dur);
+    g.gain.setValueAtTime(0.1, state.audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + dur);
+    osc.start(); osc.stop(state.audioCtx.currentTime + dur);
+  }
+
+  function playAlarm() {
+    state.alarmInterval = setInterval(() => playTone(880, 0.5), 1000);
+  }
+
+  function stopAlarm() {
+    clearInterval(state.alarmInterval);
   }
 
   updateUI();
 </script>
+
 </body>
 </html>
